@@ -57,7 +57,7 @@ def get_relatorio_consumos(
     
     # Get all records
     sql_records_str = f"""
-        SELECT nome, valor, data, hora, databaixa, horabaixa
+        SELECT nome, valor, data, hora, databaixa, horabaixa, idfunc
         FROM CAFE
         {where_str}
         ORDER BY data DESC, nome ASC
@@ -66,13 +66,25 @@ def get_relatorio_consumos(
     
     # Get totals per user
     sql_totals_str = f"""
-        SELECT nome, SUM(valor) as total
+        SELECT nome, SUM(valor) as total, idfunc
         FROM CAFE
         {where_str}
-        GROUP BY nome
+        GROUP BY nome, idfunc
         ORDER BY total DESC
     """
     result_totals = target_db.execute(text(sql_totals_str), params).fetchall()
+
+    # Calculate specific totals for employees and visitors
+    total_funcionarios = 0.0
+    total_visitantes = 0.0
+
+    # For employees, idfunc is usually a number and not 999999
+    # For visitors, idfunc is 999999
+    for row in result_records:
+        if row[6] == 999999:
+            total_visitantes += float(row[1])
+        else:
+            total_funcionarios += float(row[1])
     
     return {
         "records": [
@@ -81,10 +93,13 @@ def get_relatorio_consumos(
                 "valor": float(row[1]), 
                 "data": str(row[2]), 
                 "hora": str(row[3]),
-                "baixado": row[4] is not None
+                "baixado": row[4] is not None,
+                "codigo": row[6]
             } for row in result_records
         ],
-        "totals": [{"nome": row[0], "total": float(row[1])} for row in result_totals]
+        "totals": [{"nome": row[0], "total": float(row[1]), "codigo": row[2]} for row in result_totals],
+        "total_funcionarios": total_funcionarios,
+        "total_visitantes": total_visitantes
     }
 
 @router.post("/baixar")

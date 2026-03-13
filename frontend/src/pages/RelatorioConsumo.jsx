@@ -8,10 +8,11 @@ registerLocale('pt-BR', ptBR);
 
 export default function RelatorioConsumo() {
   const navigate = useNavigate();
-  const [data, setData] = useState({ records: [], totals: [] });
+  const [data, setData] = useState({ records: [], totals: [], total_funcionarios: 0, total_visitantes: 0 });
   const [loading, setLoading] = useState(true);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [isBaixando, setIsBaixando] = useState(false);
+  const [reportType, setReportType] = useState('detalhado'); // 'detalhado' or 'resumido'
 
   // Set default dates for the current month
   const now = new Date();
@@ -91,7 +92,9 @@ export default function RelatorioConsumo() {
 
   const handlePrintOnly = () => {
     setShowConfirmModal(false);
-    window.print();
+    setTimeout(() => {
+      window.print();
+    }, 100);
   };
 
   if (loading && data.records.length === 0) {
@@ -102,15 +105,18 @@ export default function RelatorioConsumo() {
     );
   }
 
+  // Helper to format date in report title (MM/YYYY)
+  const reportDate = new Date(startDate + 'T00:00:00');
+  const monthYear = `${reportDate.getMonth() + 1}/${reportDate.getFullYear()}`;
+
   return (
     <div className="min-h-screen w-full p-4 sm:p-8 bg-black/95 text-white">
       <header className="flex flex-col mb-8 gap-6">
         <div className="flex justify-between items-start w-full">
           <div>
-            {/*<Link to="/dashboard" className="text-accent hover:underline mb-2 inline-block print:hidden">← Voltar ao Dashboard</Link>*/}
             <h1 className="text-3xl sm:text-4xl font-black text-accent uppercase tracking-tighter">
               Relatório de Consumos
-              <span className="block text-sm font-bold text-gray-400 mt-1 print:text-black">
+              <span className="block text-sm font-bold text-gray-400 mt-1 print:hidden">
                 Período: {new Date(startDate + 'T00:00:00').toLocaleDateString('pt-BR')} até {new Date(endDate + 'T00:00:00').toLocaleDateString('pt-BR')}
               </span>
             </h1>
@@ -129,7 +135,7 @@ export default function RelatorioConsumo() {
             <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">De</label>
             <DatePicker
               selected={new Date(startDate + 'T00:00:00')}
-              onChange={(date) => setStartDate(date.toISOString().split('T')[0])}
+              onChange={(date) => setStartDate(date ? date.toISOString().split('T')[0] : '')}
               dateFormat="dd/MM/yyyy"
               locale="pt-BR"
               className="bg-black border border-white/20 rounded-lg px-4 py-2 text-white focus:border-accent outline-none transition-colors w-full"
@@ -139,7 +145,7 @@ export default function RelatorioConsumo() {
             <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Até</label>
             <DatePicker
               selected={new Date(endDate + 'T00:00:00')}
-              onChange={(date) => setEndDate(date.toISOString().split('T')[0])}
+              onChange={(date) => setEndDate(date ? date.toISOString().split('T')[0] : '')}
               dateFormat="dd/MM/yyyy"
               locale="pt-BR"
               className="bg-black border border-white/20 rounded-lg px-4 py-2 text-white focus:border-accent outline-none transition-colors w-full"
@@ -161,36 +167,74 @@ export default function RelatorioConsumo() {
       </header>
 
       <div className="grid grid-cols-1 gap-8 print:block">
-        {/* Print-only section for totals in 3 columns */}
-        <div className="hidden print:block mb-8">
-          <h2 className="text-xl font-bold mb-6 border-b-2 border-black pb-2 text-black uppercase text-center">Resumo de Totais por Usuário</h2>
-          <div className="grid grid-cols-3 gap-x-8 gap-y-4">
-            {data.totals.map((item, idx) => (
-              <div key={idx} className="flex flex-col text-[10pt] border-b border-gray-200 pb-2 relative">
-                <div className="truncate font-black text-black uppercase text-[9pt] leading-tight" title={item.nome}>
-                  <span className="text-[7pt] font-normal text-gray-500 block mb-0.5">Nome</span>
-                  {item.nome}
-                </div>
-                <div className="text-black mt-1.5 flex justify-between items-baseline">
-                  <span className="text-[7pt] font-normal text-gray-500 uppercase">Valor</span>
-                  <span className="font-bold text-black">R$ {item.total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
-                </div>
-                {/* Vertical divider line between columns */}
-                {(idx + 1) % 3 !== 0 && idx < data.totals.length - 1 && (
-                  <div className="absolute -right-4 top-2 bottom-2 w-[0.5pt] bg-gray-200" />
-                )}
+        {/* PRINT DETALHADO */}
+        {reportType === 'detalhado' && (
+          <div className="hidden print:block font-mono text-[9pt] leading-tight text-black">
+            <div className="text-center mb-1">
+              RELACAO DE CONSUMO DE CAFE DETALHADO - {monthYear}
+            </div>
+            <div className="border-t border-black border-dashed mb-1"></div>
+            <div className="grid grid-cols-[80px_1fr_100px_100px_100px] gap-2 font-bold mb-1 uppercase">
+              <div>CODIGO</div>
+              <div>NOME</div>
+              <div className="text-right">VALOR</div>
+              <div className="text-center">DATA</div>
+              <div className="text-center">HORA</div>
+            </div>
+            <div className="border-t border-black border-dashed mb-2"></div>
+            {data.records.map((record, idx) => (
+              <div key={idx} className="grid grid-cols-[80px_1fr_100px_100px_100px] gap-2 mb-1">
+                <div>{record.codigo}</div>
+                <div className="truncate uppercase">{record.nome}</div>
+                <div className="text-right">{record.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+                <div className="text-center">{new Date(record.data + 'T00:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' })}</div>
+                <div className="text-center">{record.hora}</div>
               </div>
             ))}
+            <div className="mt-8">
+              <div className="font-bold mb-1">TOTAL DE CONSUMO:</div>
+              <div>Funcionarios: R$ {data.total_funcionarios?.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+              <div>Visitantes..: R$ {data.total_visitantes?.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+            </div>
           </div>
-        </div>
+        )}
 
-        {/* Detailed Records Section - hidden on print */}
+        {/* PRINT RESUMIDO */}
+        {reportType === 'resumido' && (
+          <div className="hidden print:block font-mono text-[9pt] leading-tight text-black">
+            <div className="text-center mb-1">
+              RELACAO DE CONSUMO DE CAFE RESUMIDO - {monthYear}
+            </div>
+            <div className="border-t border-black border-dashed mb-1"></div>
+            <div className="grid grid-cols-[80px_1fr_100px] gap-2 font-bold mb-1 uppercase">
+              <div>CODIGO</div>
+              <div>NOME</div>
+              <div className="text-right">VALOR</div>
+            </div>
+            <div className="border-t border-black border-dashed mb-2"></div>
+            {data.totals.map((item, idx) => (
+              <div key={idx} className="grid grid-cols-[80px_1fr_100px] gap-2 mb-1">
+                <div>{item.codigo}</div>
+                <div className="truncate uppercase">{item.nome}</div>
+                <div className="text-right">{item.total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+              </div>
+            ))}
+            <div className="mt-8">
+              <div className="font-bold mb-1">TOTAL DE CONSUMO:</div>
+              <div>Funcionarios: R$ {data.total_funcionarios?.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+              <div>Visitantes..: R$ {data.total_visitantes?.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+            </div>
+          </div>
+        )}
+
+        {/* Detailed Records Section - screen only */}
         <section className="col-span-1 print:hidden">
           <div className="glass-card overflow-hidden">
             <div className="max-h-[750px] overflow-y-auto custom-scrollbar">
               <table className="w-full text-left border-collapse">
                 <thead className="bg-white/5 text-gray-400 uppercase text-xs font-bold sticky top-0 z-10">
                   <tr>
+                    <th className="px-6 py-4">Código</th>
                     <th className="px-6 py-4">Usuário</th>
                     <th className="px-6 py-4">Data</th>
                     <th className="px-6 py-4 text-center">Hora</th>
@@ -200,6 +244,9 @@ export default function RelatorioConsumo() {
                 <tbody className="divide-y divide-white/5">
                   {data.records.map((record, idx) => (
                     <tr key={idx} className="hover:bg-white/5 transition-colors group">
+                      <td className="px-6 py-4 text-gray-500 font-mono text-xs">
+                        {record.codigo}
+                      </td>
                       <td className="px-6 py-4">
                         <span className="uppercase font-bold text-gray-200 group-hover:text-accent transition-colors">
                           {record.nome}
@@ -233,9 +280,36 @@ export default function RelatorioConsumo() {
             onClick={(e) => e.stopPropagation()}
           >
             <h3 className="text-2xl font-black text-white uppercase tracking-tighter mb-4">
-              Atenção
+              Imprimir Relatório
             </h3>
-            <p className="text-gray-400 font-medium mb-8 leading-relaxed">
+            
+            <div className="mb-6">
+              <label className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 block">Tipo de Relatório</label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => setReportType('detalhado')}
+                  className={`py-3 rounded-xl border font-bold transition-all uppercase text-xs tracking-widest ${
+                    reportType === 'detalhado' 
+                      ? 'bg-accent text-black border-accent' 
+                      : 'bg-white/5 text-gray-400 border-white/10 hover:bg-white/10'
+                  }`}
+                >
+                  Detalhado
+                </button>
+                <button
+                  onClick={() => setReportType('resumido')}
+                  className={`py-3 rounded-xl border font-bold transition-all uppercase text-xs tracking-widest ${
+                    reportType === 'resumido' 
+                      ? 'bg-accent text-black border-accent' 
+                      : 'bg-white/5 text-gray-400 border-white/10 hover:bg-white/10'
+                  }`}
+                >
+                  Resumido
+                </button>
+              </div>
+            </div>
+
+            <p className="text-gray-400 font-medium mb-8 leading-relaxed text-sm">
               Deseja fazer a baixa dos lançamentos impressos?
               <span className="block text-xs mt-2 text-accent/70 uppercase font-bold">* Isso gravará a data e hora da baixa nos registros.</span>
             </p>
@@ -314,13 +388,10 @@ export default function RelatorioConsumo() {
             -webkit-print-color-adjust: exact; 
           }
           .min-h-screen { min-height: auto !important; width: 100% !important; }
-          header, button, a, .print\\:hidden, .glass-card { display: none !important; }
+          header, button, a, .print\\:hidden, .glass-card, section { display: none !important; }
           .print\\:block { display: block !important; background: white !important; }
-          .print\\:grid { display: grid !important; background: white !important; }
           .text-accent, .text-gray-400, .text-gray-300, .text-black, .text-gray-100 { color: black !important; }
-          .border-gray-100, .border-black { border-color: #ddd !important; }
-          h1 { display: block !important; color: black !important; margin-bottom: 2rem !important; text-align: center; font-size: 20pt !important; font-weight: 900 !important; }
-          h2 { color: black !important; }
+          h1 { display: none !important; }
           @page { margin: 1cm; }
         }
       `}} />
