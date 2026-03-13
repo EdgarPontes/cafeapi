@@ -6,6 +6,7 @@ services:
     restart: always
     environment:
       - FOTOS_PATH=/fotos
+      - TZ=America/Sao_Paulo
     volumes:
       - ./fotos:/fotos
     ports:

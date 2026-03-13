@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import text
 from ..database import get_db, get_db_cafe
 import datetime
+import zoneinfo
 from pydantic import BaseModel
 
 class BaixarRequest(BaseModel):
@@ -122,7 +123,8 @@ def baixar_relatorio(
     
     where_str = "WHERE " + " AND ".join(where_clauses)
     
-    now = datetime.datetime.now()
+    tz = zoneinfo.ZoneInfo("America/Sao_Paulo")
+    now = datetime.datetime.now(tz)
     params["data_baixa"] = now.date()
     params["hora_baixa"] = now.strftime("%H:%M:%S")
     

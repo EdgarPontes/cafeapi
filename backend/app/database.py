@@ -2,6 +2,7 @@ from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, 
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import datetime
+import zoneinfo
 import os
 from .config import DATABASE_URL_SG, DATABASE_URL_RJK, DATABASE_URL_CAFE
 
@@ -38,7 +39,7 @@ class Consumo(Base):
     idfunc = Column("idfunc", Integer, index=True)
     nome = Column("nome", String(30))
     valor = Column("valor", Numeric(12, 2))
-    data = Column("data", Date, default=datetime.date.today)
+    data = Column("data", Date, default=lambda: datetime.datetime.now(zoneinfo.ZoneInfo("America/Sao_Paulo")).date())
     hora = Column("hora", String(8))
     databaixa = Column("databaixa", Date, nullable=True)
     horabaixa = Column("horabaixa", String(8), nullable=True)

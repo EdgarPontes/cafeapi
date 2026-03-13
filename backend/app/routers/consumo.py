@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from ..database import get_db, get_db_rjk, get_db_cafe, Consumo, Funcionario
 from pydantic import BaseModel
 import datetime
+import zoneinfo
 import re
 
 router = APIRouter()
@@ -45,7 +46,8 @@ def register_consumo(data: ConsumoCreate, db: Session = Depends(get_db), db_rjk:
         # Except for visitors (codigo 999999)
         raise HTTPException(status_code=404, detail="Funcionário não encontrado")
     
-    now = datetime.datetime.now()
+    tz = zoneinfo.ZoneInfo("America/Sao_Paulo")
+    now = datetime.datetime.now(tz)
     
     # Para visitantes, usa o nome que veio do frontend
     if data.codigo == '999999' or codigo_float == 999999:
