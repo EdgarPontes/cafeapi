@@ -1,0 +1,12 @@
+{
+  "dependencies": {
+    "react-qr-scanner": "^1.0.0-alpha.11",
+    "recharts": "^3.7.0",
+    "vite-plugin-pwa": "^1.2.0"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.27",
+    "postcss": "^8.5.8",
+    "tailwindcss": "^4.2.1"
+  }
+}
