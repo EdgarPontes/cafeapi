@@ -6,7 +6,7 @@ export default function Ranking({ large = false, period = 'hoje' }) {
   useEffect(() => {
     const fetchRanking = async () => {
       try {
-        const resp = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/ranking/${period}`);
+        const resp = await fetch(`${import.meta.env.VITE_API_URL || ''}/api/ranking/${period}`);
         if (resp.ok) {
           setData(await resp.json());
         }

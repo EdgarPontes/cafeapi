@@ -8,7 +8,7 @@ export default function Dashboard() {
   const [period, setPeriod] = useState('mes');
 
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/relatorios/mensal`)
+    fetch(`${import.meta.env.VITE_API_URL || ''}/api/relatorios/mensal`)
       .then(res => res.json())
       .then(data => setChartData(data));
   }, []);

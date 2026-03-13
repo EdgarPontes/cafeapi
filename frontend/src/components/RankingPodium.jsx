@@ -6,7 +6,7 @@ export default function RankingPodium() {
   useEffect(() => {
     async function fetchRanking() {
       try {
-        const resp = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/ranking/mes`);
+        const resp = await fetch(`${import.meta.env.VITE_API_URL || ''}/api/ranking/mes`);
         if (resp.ok) {
           const data = await resp.json();
           setRanking(data.slice(0, 3));

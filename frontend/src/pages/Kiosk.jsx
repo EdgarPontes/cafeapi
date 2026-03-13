@@ -27,7 +27,7 @@ export default function Kiosk() {
 
   async function buscarFuncionario(codigo) {
     try {
-      const resp = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/funcionarios/${codigo}`);
+      const resp = await fetch(`${import.meta.env.VITE_API_URL || ''}/api/funcionarios/${codigo}`);
       if (!resp.ok) throw new Error("Não encontrado");
       const data = await resp.json();
       setUser(data);
@@ -60,7 +60,7 @@ export default function Kiosk() {
         requestBody.nome = user.nome;
       }
       
-      const resp = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/consumo/`, {
+      const resp = await fetch(`${import.meta.env.VITE_API_URL || ''}/api/consumo/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(requestBody)

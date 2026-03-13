@@ -30,7 +30,7 @@ export default function RelatorioConsumo() {
       baixado: showBaixados
     });
 
-    fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/relatorios/consumos?${params.toString()}`)
+    fetch(`${import.meta.env.VITE_API_URL || ''}/api/relatorios/consumos?${params.toString()}`)
       .then(res => res.json())
       .then(data => {
         setData(data);
@@ -50,7 +50,7 @@ export default function RelatorioConsumo() {
       baixado: showBaixados
     });
 
-    fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/relatorios/consumos?${params.toString()}`)
+    fetch(`${import.meta.env.VITE_API_URL || ''}/api/relatorios/consumos?${params.toString()}`)
       .then(res => res.json())
       .then(data => {
         setData(data);
@@ -65,7 +65,7 @@ export default function RelatorioConsumo() {
   const handleBaixar = async () => {
     setIsBaixando(true);
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/relatorios/baixar`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || ''}/api/relatorios/baixar`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

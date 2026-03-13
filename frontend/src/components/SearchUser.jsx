@@ -8,7 +8,7 @@ export default function SearchUser({ onSelect }) {
   useEffect(() => {
     if (query.length > 2) {
       // Small debounce simulation or just direct fetch
-      fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/funcionarios/`)
+      fetch(`${import.meta.env.VITE_API_URL || ''}/api/funcionarios/`)
         .then(res => res.json())
         .then(data => {
           const filtered = data.filter(u =>
