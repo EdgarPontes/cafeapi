@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import DatePicker, { registerLocale } from 'react-datepicker';
 import { ptBR } from 'date-fns/locale/pt-BR';
 import 'react-datepicker/dist/react-datepicker.css';
@@ -7,8 +7,11 @@ import 'react-datepicker/dist/react-datepicker.css';
 registerLocale('pt-BR', ptBR);
 
 export default function RelatorioConsumo() {
+  const navigate = useNavigate();
   const [data, setData] = useState({ records: [], totals: [] });
   const [loading, setLoading] = useState(true);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [isBaixando, setIsBaixando] = useState(false);
 
   // Set default dates for the current month
   const now = new Date();
@@ -39,6 +42,58 @@ export default function RelatorioConsumo() {
       });
   }, [startDate, endDate, showBaixados]);
 
+  const fetchReport = () => {
+    setLoading(true);
+    const params = new URLSearchParams({
+      start_date: startDate,
+      end_date: endDate,
+      baixado: showBaixados
+    });
+
+    fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/relatorios/consumos?${params.toString()}`)
+      .then(res => res.json())
+      .then(data => {
+        setData(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error("Error fetching report:", err);
+        setLoading(false);
+      });
+  };
+
+  const handleBaixar = async () => {
+    setIsBaixando(true);
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/relatorios/baixar`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          start_date: startDate,
+          end_date: endDate
+        })
+      });
+
+      if (response.ok) {
+        setShowConfirmModal(false);
+        window.print();
+        fetchReport(); // Refresh to hide baixados if checkbox is off
+      } else {
+        alert("Erro ao realizar a baixa.");
+      }
+    } catch (error) {
+      console.error("Error in handleBaixar:", error);
+      alert("Erro na requisição de baixa.");
+    } finally {
+      setIsBaixando(false);
+    }
+  };
+
+  const handlePrintOnly = () => {
+    setShowConfirmModal(false);
+    window.print();
+  };
+
   if (loading && data.records.length === 0) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-black text-accent">
@@ -52,7 +107,7 @@ export default function RelatorioConsumo() {
       <header className="flex flex-col mb-8 gap-6">
         <div className="flex justify-between items-start w-full">
           <div>
-            <Link to="/dashboard" className="text-accent hover:underline mb-2 inline-block print:hidden">← Voltar ao Dashboard</Link>
+            {/*<Link to="/dashboard" className="text-accent hover:underline mb-2 inline-block print:hidden">← Voltar ao Dashboard</Link>*/}
             <h1 className="text-3xl sm:text-4xl font-black text-accent uppercase tracking-tighter">
               Relatório de Consumos
               <span className="block text-sm font-bold text-gray-400 mt-1 print:text-black">
@@ -61,7 +116,7 @@ export default function RelatorioConsumo() {
             </h1>
           </div>
           <button
-            onClick={() => window.print()}
+            onClick={() => setShowConfirmModal(true)}
             className="px-6 py-3 bg-accent text-black font-bold rounded-xl hover:bg-accent/80 transition-all uppercase tracking-widest text-sm print:hidden"
           >
             Imprimir Relatório
@@ -167,6 +222,47 @@ export default function RelatorioConsumo() {
           </div>
         </section>
       </div>
+
+      {showConfirmModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm print:hidden"
+          onClick={() => setShowConfirmModal(false)}
+        >
+          <div
+            className="bg-[#1a1a1a] p-8 rounded-3xl border border-white/10 shadow-2xl max-w-md w-full mx-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-2xl font-black text-white uppercase tracking-tighter mb-4">
+              Atenção
+            </h3>
+            <p className="text-gray-400 font-medium mb-8 leading-relaxed">
+              Deseja fazer a baixa dos lançamentos impressos?
+              <span className="block text-xs mt-2 text-accent/70 uppercase font-bold">* Isso gravará a data e hora da baixa nos registros.</span>
+            </p>
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={handleBaixar}
+                disabled={isBaixando}
+                className="w-full py-4 bg-accent text-black font-black rounded-xl hover:scale-[1.02] active:scale-[0.98] transition-all uppercase tracking-widest disabled:opacity-50"
+              >
+                {isBaixando ? 'Processando...' : 'Sim, Fazer Baixa'}
+              </button>
+              <button
+                onClick={handlePrintOnly}
+                className="w-full py-4 bg-white/5 text-white font-bold rounded-xl hover:bg-white/10 transition-all uppercase tracking-widest"
+              >
+                Não, Apenas Imprimir
+              </button>
+            </div>
+            <button
+              onClick={() => setShowConfirmModal(false)}
+              className="w-full mt-4 text-xs text-gray-500 hover:text-gray-300 transition-colors uppercase font-bold tracking-widest"
+            >
+              Cancelar e Voltar
+            </button>
+          </div>
+        </div>
+      )}
 
       <style dangerouslySetInnerHTML={{
         __html: `

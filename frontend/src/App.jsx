@@ -22,9 +22,9 @@ function App() {
               </nav>*/}
               <main className="flex-1 flex items-center justify-center">
                 <Routes>
-                  <Route path="/" element={<Kiosk />} />
+                  <Route path="/relatorio" element={<Kiosk />} />
                   <Route path="/dashboard" element={<Dashboard />} />
-                  <Route path="/relatorio" element={<RelatorioConsumo />} />
+                  <Route path="/" element={<RelatorioConsumo />} />
                 </Routes>
               </main>
             </div>
