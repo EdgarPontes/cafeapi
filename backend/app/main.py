@@ -8,7 +8,7 @@ app = FastAPI(title="Cafe System API")
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://172.16.102.48:3000"],  # Specifically allow the frontend origin
+    allow_origins=["*"],  # Allow all origins for easier connectivity (Android App, different server IPs)
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

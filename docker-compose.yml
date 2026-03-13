@@ -1,30 +1,24 @@
-version: '3.9'
+version: '3'
 
 services:
   backend:
     build: ./backend
     restart: always
     environment:
-      FOTOS_PATH: /fotos
+      - FOTOS_PATH=/fotos
     volumes:
       - ./fotos:/fotos
+    ports:
+      - "8000:8000"
     expose:
       - "8000"
 
   frontend:
     build: ./frontend
     restart: always
-    depends_on:
-      - backend
-
-  nginx:
-    image: nginx:alpine
-    restart: always
     ports:
-      - "80:80"
+      - "8090:80"
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./fotos:/fotos:ro
     depends_on:
       - backend
-      - frontend
