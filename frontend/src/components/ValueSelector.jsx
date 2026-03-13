@@ -1,87 +1,83 @@
 import { useState } from 'react';
 
 export default function ValueSelector({ onSelect, onCancel }) {
-  const values = [0.25, 0.50, 1.00, 1.25, 1.50, 2.00];
-  const [customValue, setCustomValue] = useState("");
+  const [history, setHistory] = useState([]);
 
-  const parseValue = (str) => {
-    let clean = str.replace(/[^0-9.,]/g, '');
-    if (!clean) return 0;
+  const total = history.reduce((sum, val) => sum + val, 0);
 
-    if (clean.includes(',') || clean.includes('.')) {
-      return parseFloat(clean.replace(',', '.'));
-    }
-
-    if (clean.length >= 3) {
-      return parseFloat(clean.slice(0, -2) + '.' + clean.slice(-2));
-    } else {
-      return parseFloat(clean);
-    }
+  const addValue = (val) => {
+    setHistory([...history, val]);
   };
 
-  const handleBlur = () => {
-    if (!customValue) return;
-    const val = parseValue(customValue);
-    if (val > 0) {
-      setCustomValue(val.toFixed(2));
-    } else {
-      setCustomValue("");
-    }
+  const undo = () => {
+    setHistory(history.slice(0, -1));
   };
 
-  const handleCustomConfirm = () => {
-    const val = parseValue(customValue);
-    if (val > 0) {
-      onSelect(val);
-    }
+  const clear = () => {
+    setHistory([]);
   };
 
   return (
-    <div className="glass-card p-8 text-center max-w-md mx-auto">
-      <h2 className="text-2xl font-bold mb-6">Selecione o Valor</h2>
-      <div className="grid grid-cols-2 gap-4 mb-6">
-        {values.map(val => (
-          <button
-            key={val}
-            onClick={() => onSelect(val)}
-            className="btn-premium p-6 rounded-2xl text-2xl font-black"
-          >
-            R$ {val.toFixed(2)}
-          </button>
-        ))}
-      </div>
-
-      <div className="mb-8 flex flex-col items-center justify-center gap-3">
-        <div className="text-sm text-gray-300 font-medium">Ou digite outro valor:</div>
-        <div className="flex gap-2">
-          <input
-            type="text"
-            inputMode="decimal"
-            placeholder="0.00"
-            value={customValue}
-            onChange={(e) => setCustomValue(e.target.value)}
-            onBlur={handleBlur}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') handleCustomConfirm();
-            }}
-            className="p-3 rounded-xl bg-gray-800 text-white border border-gray-600 focus:outline-none focus:border-blue-500 w-32 text-center text-xl font-bold"
-          />
-          <button
-            onClick={handleCustomConfirm}
-            disabled={!customValue || parseValue(customValue) <= 0}
-            className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white px-6 rounded-xl font-bold transition-colors"
-          >
-            Confirmar
-          </button>
+    <div className="glass-card p-8 text-center max-w-sm mx-auto flex flex-col gap-6 shadow-2xl border-white/5 bg-[#1a1a1a]">
+      <div className="flex flex-col items-center">
+        <h2 className="text-2xl font-bold text-white mb-6">Adicionar Créditos</h2>
+        <div className="text-gray-500 text-sm font-medium mb-1 uppercase tracking-wider">Total</div>
+        <div className="text-5xl font-black text-[#D2B48C] drop-shadow-lg">
+          R$ {total.toFixed(2)}
         </div>
       </div>
 
-      <button
-        onClick={onCancel}
-        className="text-gray-400 hover:text-white underline"
-      >
-        Cancelar
-      </button>
+      <div className="flex flex-wrap justify-center gap-4">
+        <button
+          onClick={() => addValue(0.25)}
+          className="flex-1 min-w-[140px] bg-[#8C5E3C] hover:bg-[#7A5134] text-white py-7 rounded-2xl text-2xl font-black shadow-md transition-all active:scale-95 border border-white/5"
+        >
+          R$ 0.25
+        </button>
+        <button
+          onClick={() => addValue(0.50)}
+          className="flex-1 min-w-[140px] bg-[#8C5E3C] hover:bg-[#7A5134] text-white py-7 rounded-2xl text-2xl font-black shadow-md transition-all active:scale-95 border border-white/5"
+        >
+          R$ 0.50
+        </button>
+        <button
+          onClick={() => addValue(1.00)}
+          className="flex-1 min-w-[140px] bg-[#8C5E3C] hover:bg-[#7A5134] text-white py-7 rounded-2xl text-2xl font-black shadow-md transition-all active:scale-95 border border-white/5"
+        >
+          R$ 1.00
+        </button>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <button
+          onClick={clear}
+          className="bg-[#8B1A1A] hover:bg-[#751616] text-white py-4 rounded-full font-bold shadow-md transition-all active:scale-95"
+        >
+          Limpar
+        </button>
+        <button
+          onClick={undo}
+          className="bg-[#3D444D] hover:bg-[#343a41] text-white py-4 rounded-full font-bold shadow-md transition-all active:scale-95"
+        >
+          Desfazer
+        </button>
+      </div>
+
+      <div className="flex flex-col gap-4 mt-2">
+        <button
+          onClick={() => onSelect(total)}
+          disabled={total <= 0}
+          className="bg-[#CBA363] hover:bg-[#B38D4F] disabled:opacity-40 disabled:cursor-not-allowed text-white py-5 rounded-full text-xl font-bold shadow-xl transition-all active:scale-[0.98] border border-white/10"
+        >
+          Confirmar
+        </button>
+        <button
+          onClick={onCancel}
+          className="text-gray-500 hover:text-white font-medium transition-colors py-2"
+        >
+          Cancelar
+        </button>
+      </div>
     </div>
   );
 }
