@@ -6,18 +6,18 @@ import zoneinfo
 import os
 from .config import DATABASE_URL_SG, DATABASE_URL_RJK, DATABASE_URL_CAFE
 
-engine = create_engine(DATABASE_URL_SG)
+engine = create_engine(DATABASE_URL_SG, pool_recycle=3600, pool_pre_ping=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 if DATABASE_URL_RJK:
-    engine_rjk = create_engine(DATABASE_URL_RJK)
+    engine_rjk = create_engine(DATABASE_URL_RJK, pool_recycle=3600, pool_pre_ping=True)
     SessionLocalRjk = sessionmaker(autocommit=False, autoflush=False, bind=engine_rjk)
 else:
     engine_rjk = None
     SessionLocalRjk = None
 
 if DATABASE_URL_CAFE:
-    engine_cafe = create_engine(DATABASE_URL_CAFE)
+    engine_cafe = create_engine(DATABASE_URL_CAFE, pool_recycle=3600, pool_pre_ping=True)
     SessionLocalCafe = sessionmaker(autocommit=False, autoflush=False, bind=engine_cafe)
 else:
     engine_cafe = None
