@@ -2,16 +2,19 @@ from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from .database import engine
 from .routers import funcionarios, consumo, ranking, relatorios
+from .config import ALLOWED_ORIGINS
 
 app = FastAPI(title="Cafe System API")
 
 # Configure CORS
+# Origens são lidas da variável ALLOWED_ORIGINS (separadas por vírgula)
+# Ex: ALLOWED_ORIGINS=http://localhost:8090,http://meu-servidor.com
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins for easier connectivity (Android App, different server IPs)
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["Content-Type", "Accept", "Authorization"],
 )
 
 app.include_router(funcionarios.router, prefix="/api/funcionarios", tags=["funcionarios"])

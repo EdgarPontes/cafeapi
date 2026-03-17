@@ -1,1 +1,21 @@
 node_modules
+
+# Arquivos de ambiente — NÃO commitar credenciais!
+backend/.env
+frontend/.env
+.env
+
+# Ambientes virtuais Python
+backend/venv/
+
+# Cache Python
+backend/app/__pycache__/
+backend/**/__pycache__/
+**/*.pyc
+
+# Build do frontend
+frontend/dist/
+
+# Arquivos de certificado com chave privada
+*.sg
+autoriza*.sg
