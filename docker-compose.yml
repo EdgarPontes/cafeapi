@@ -1,4 +1,3 @@
-version: '3'
 
 services:
   backend:
@@ -11,7 +10,8 @@ services:
       - ALLOWED_ORIGINS=http://localhost:8090
     volumes:
       - ./fotos:/fotos
-    # Porta 8000 NÃO exposta externamente — acesso via rede interna Docker
+    ports:
+      - "8000:8000"
     expose:
       - "8000"
 

@@ -19,3 +19,4 @@ frontend/dist/
 # Arquivos de certificado com chave privada
 *.sg
 autoriza*.sg
+walkthrough*.md
