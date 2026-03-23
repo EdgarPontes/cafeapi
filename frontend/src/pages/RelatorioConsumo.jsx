@@ -6,8 +6,93 @@ import 'react-datepicker/dist/react-datepicker.css';
 
 registerLocale('pt-BR', ptBR);
 
+const REPORT_USER = import.meta.env.VITE_REPORT_USER || 'admin';
+const REPORT_PASSWORD = import.meta.env.VITE_REPORT_PASSWORD || 'cafe123';
+const SESSION_KEY = 'relatorio_auth';
+
+function LoginModal({ onSuccess }) {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [shaking, setShaking] = useState(false);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (username === REPORT_USER && password === REPORT_PASSWORD) {
+      sessionStorage.setItem(SESSION_KEY, '1');
+      onSuccess();
+    } else {
+      setError('Usuário ou senha incorretos.');
+      setShaking(true);
+      setTimeout(() => setShaking(false), 500);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black">
+      <div
+        className={`bg-[#111] border border-white/10 rounded-3xl p-10 w-full max-w-sm shadow-2xl transition-transform ${
+          shaking ? 'animate-shake' : ''
+        }`}
+      >
+        <div className="text-center mb-8">
+          <span className="text-5xl">☕</span>
+          <h1 className="text-2xl font-black text-accent uppercase tracking-tighter mt-3">
+            Relatórios
+          </h1>
+          <p className="text-gray-500 text-xs mt-1 uppercase tracking-widest font-bold">Acesso restrito</p>
+        </div>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Usuário</label>
+            <input
+              type="text"
+              autoComplete="username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className="bg-black border border-white/20 rounded-xl px-4 py-3 text-white focus:border-accent outline-none transition-colors text-sm"
+              placeholder="Digite o usuário"
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Senha</label>
+            <input
+              type="password"
+              autoComplete="current-password"
+              value={password}
+              onChange={(e) => { setPassword(e.target.value); setError(''); }}
+              className="bg-black border border-white/20 rounded-xl px-4 py-3 text-white focus:border-accent outline-none transition-colors text-sm"
+              placeholder="Digite a senha"
+            />
+          </div>
+          {error && (
+            <p className="text-red-400 text-xs font-bold text-center uppercase tracking-wide">{error}</p>
+          )}
+          <button
+            type="submit"
+            className="mt-2 w-full py-4 bg-accent text-black font-black rounded-xl hover:bg-accent/80 active:scale-[0.98] transition-all uppercase tracking-widest text-sm"
+          >
+            Entrar
+          </button>
+        </form>
+      </div>
+      <style>{`
+        @keyframes shake {
+          0%, 100% { transform: translateX(0); }
+          20%, 60% { transform: translateX(-8px); }
+          40%, 80% { transform: translateX(8px); }
+        }
+        .animate-shake { animation: shake 0.4s ease; }
+      `}</style>
+    </div>
+  );
+}
+
 export default function RelatorioConsumo() {
   const navigate = useNavigate();
+  const [isAuthenticated, setIsAuthenticated] = useState(
+    () => sessionStorage.getItem(SESSION_KEY) === '1'
+  );
   const [data, setData] = useState({ records: [], totals: [], total_funcionarios: 0, total_visitantes: 0 });
   const [loading, setLoading] = useState(true);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -96,6 +181,10 @@ export default function RelatorioConsumo() {
       window.print();
     }, 100);
   };
+
+  if (!isAuthenticated) {
+    return <LoginModal onSuccess={() => setIsAuthenticated(true)} />;
+  }
 
   if (loading && data.records.length === 0) {
     return (
