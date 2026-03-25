@@ -3,6 +3,7 @@ node_modules
 # Arquivos de ambiente — NÃO commitar credenciais!
 backend/.env
 frontend/.env
+backend/fotos/
 .env
 
 # Ambientes virtuais Python
