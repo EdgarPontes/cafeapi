@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from .database import engine
-from .routers import funcionarios, consumo, ranking, relatorios
+from .routers import funcionarios, consumo, ranking, relatorios, fotos
 from .config import ALLOWED_ORIGINS
 
 app = FastAPI(title="Cafe System API")
@@ -21,6 +21,7 @@ app.include_router(funcionarios.router, prefix="/api/funcionarios", tags=["funci
 app.include_router(consumo.router, prefix="/api/consumo", tags=["consumo"])
 app.include_router(ranking.router, prefix="/api/ranking", tags=["ranking"])
 app.include_router(relatorios.router, prefix="/api/relatorios", tags=["relatorios"])
+app.include_router(fotos.router, prefix="/api/fotos", tags=["fotos"])
 
 @app.get("/")
 def read_root():

@@ -4,6 +4,7 @@ node_modules
 backend/.env
 frontend/.env
 backend/fotos/
+fotos/
 .env
 
 # Ambientes virtuais Python
