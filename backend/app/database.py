@@ -4,7 +4,18 @@ from sqlalchemy.orm import sessionmaker
 import datetime
 import zoneinfo
 import os
+import logging
 from .config import DATABASE_URL_SG, DATABASE_URL_RJK, DATABASE_URL_CAFE
+
+# Setup logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+logger.info(f"SG Database URL: {DATABASE_URL_SG[:20]}...")
+if DATABASE_URL_RJK:
+    logger.info(f"RJK Database URL found: {DATABASE_URL_RJK[:20]}...")
+else:
+    logger.warning("DATABASE_URL_RJK not found in environment!")
 
 engine = create_engine(DATABASE_URL_SG, pool_recycle=3600, pool_pre_ping=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

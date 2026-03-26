@@ -15,42 +15,46 @@ class ConsumoCreate(BaseModel):
 
 @router.post("/")
 def register_consumo(data: ConsumoCreate, db: Session = Depends(get_db), db_rjk: Session = Depends(get_db_rjk), db_cafe: Session = Depends(get_db_cafe)):
-    # Validate employee
-    # Try parsing as float for numeric comparison
+    from sqlalchemy import or_
+    
+    # Parse prefix (e.g., 'SG:40' -> prefix='SG', raw_codigo='40')
+    prefix = None
+    raw_codigo = data.codigo
+    if ":" in data.codigo:
+        prefix, raw_codigo = data.codigo.split(":", 1)
+    
+    # Try parsing the numeric part
     try:
-        codigo_float = float(data.codigo)
+        codigo_float = float(raw_codigo)
     except ValueError:
         codigo_float = None
 
     func = None
     
     # Special case for visitor (codigo 999999)
-    if data.codigo == '999999' or codigo_float == 999999:
-        # Para visitantes, o nome já vem do frontend (o que foi digitado)
-        # Não precisamos criar um objeto, apenas validamos que é visitante
-        pass
+    if raw_codigo == '999999' or codigo_float == 999999:
+        pass  # Nome vem do frontend
     elif codigo_float is not None:
-        func = db.query(Funcionario).filter(Funcionario.codigo == codigo_float).first()
-        if not func:
-            # Check RFID too
-            func = db.query(Funcionario).filter(Funcionario.rfid == codigo_float).first()
-        
-        if not func and db_rjk:
-            func = db_rjk.query(Funcionario).filter(Funcionario.codigo == codigo_float).first()
-            if not func:
-                func = db_rjk.query(Funcionario).filter(Funcionario.rfid == codigo_float).first()
+        if prefix == "SG":
+            # Busca somente no banco SG
+            func = db.query(Funcionario).filter(or_(Funcionario.codigo == codigo_float, Funcionario.rfid == codigo_float)).first()
+        elif prefix == "RJK" and db_rjk:
+            # Busca somente no banco RJK
+            func = db_rjk.query(Funcionario).filter(or_(Funcionario.codigo == codigo_float, Funcionario.rfid == codigo_float)).first()
+        else:
+            # Sem prefixo: tenta SG primeiro, depois RJK
+            func = db.query(Funcionario).filter(or_(Funcionario.codigo == codigo_float, Funcionario.rfid == codigo_float)).first()
+            if not func and db_rjk:
+                func = db_rjk.query(Funcionario).filter(or_(Funcionario.codigo == codigo_float, Funcionario.rfid == codigo_float)).first()
     
-    if not func and not (data.codigo == '999999' or codigo_float == 999999):
-        # If not a number, maybe it's the exact string (though DB is DOUBLE)
-        # But let's stick to the 404 if float conversion fails and it's not found
-        # Except for visitors (codigo 999999)
+    if not func and not (raw_codigo == '999999' or codigo_float == 999999):
         raise HTTPException(status_code=404, detail="Funcionário não encontrado")
     
     tz = zoneinfo.ZoneInfo("America/Sao_Paulo")
     now = datetime.datetime.now(tz)
     
     # Para visitantes, usa o nome que veio do frontend
-    if data.codigo == '999999' or codigo_float == 999999:
+    if raw_codigo == '999999' or codigo_float == 999999:
         # Remove acentos e converte para maiúsculo
         nome_funcionario = data.nome[:30] if data.nome else "Visitante"
         if nome_funcionario != "Visitante":
@@ -65,7 +69,7 @@ def register_consumo(data: ConsumoCreate, db: Session = Depends(get_db), db_rjk:
         nome_funcionario = func.nome[:30] # Limit to 30 chars
     
     new_entry = Consumo(
-        idfunc=int(data.codigo),
+        idfunc=int(codigo_float) if codigo_float is not None else 999999,
         nome=nome_funcionario,
         valor=data.valor,
         data=now.date(),

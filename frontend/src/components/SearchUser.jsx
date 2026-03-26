@@ -6,14 +6,14 @@ export default function SearchUser({ onSelect }) {
   const [isVisitor, setIsVisitor] = useState(false);
 
   useEffect(() => {
-    if (query.length > 2) {
-      // Small debounce simulation or just direct fetch
+    if (query.trim().length > 0) {
+      // Direct fetch or small debounce can be added here
       fetch(`${import.meta.env.VITE_API_URL || ''}/api/funcionarios/`)
         .then(res => res.json())
         .then(data => {
           const filtered = data.filter(u =>
             u.nome.toLowerCase().includes(query.toLowerCase()) ||
-            u.codigo.includes(query)
+            u.codigo.toString().includes(query)
           );
           setResults(filtered);
         });
@@ -91,7 +91,9 @@ export default function SearchUser({ onSelect }) {
 
       {results.length > 0 && (
         <div className="absolute top-[84px] left-0 right-0 glass-card overflow-hidden z-20 max-h-60 overflow-y-auto shadow-2xl">
-          {results.map(user => (
+          {results.map(user => {
+            const displayCodigo = user.codigo.includes(':') ? user.codigo.split(':')[1] : user.codigo;
+            return (
             <div
               key={user.codigo}
               className="px-6 py-4 hover:bg-white/10 cursor-pointer border-b border-white/5 last:border-0 flex flex-col"
@@ -106,12 +108,12 @@ export default function SearchUser({ onSelect }) {
               }}
             >
               <div className="font-bold text-lg">{user.nome}</div>
-              <div className="text-sm text-gray-400">Código/RFID: {user.codigo}</div>
+              <div className="text-sm text-gray-400">Código: {displayCodigo}</div>
               {isVisitor && (
                 <div className="text-xs text-accent font-bold mt-1 uppercase">Selecionar como Visitante</div>
               )}
             </div>
-          ))}
+          )})}
         </div>
       )}
     </div>

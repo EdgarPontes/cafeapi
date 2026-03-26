@@ -1,5 +1,7 @@
 export default function UserCard({user}){
-  const foto = `/fotos/${user.codigo}.jpg`;
+  // Remove prefix like 'SG:' or 'RJK:' for display and photo
+  const displayCodigo = user.codigo.includes(':') ? user.codigo.split(':')[1] : user.codigo;
+  const foto = `/fotos/${displayCodigo}.jpg`;
 
   return(
     <div className="flex items-center gap-6 glass-card p-6 transition-all hover:scale-[1.02]">
@@ -18,7 +20,7 @@ export default function UserCard({user}){
           {user.nome}
         </div>
         <div className="text-gray-400 font-mono text-sm">
-          #{user.codigo}
+          #{displayCodigo}
         </div>
       </div>
     </div>
