@@ -15,3 +15,8 @@ FOTOS_PATH = os.getenv("FOTOS_PATH", "/fotos")
 ALLOWED_ORIGINS = [
     o.strip() for o in os.getenv("ALLOWED_ORIGINS", "http://localhost:8090").split(",") if o.strip()
 ]
+
+# IPs permitidos (separados por vírgula). Se vazio, todos os IPs são aceitos.
+# Ex: ALLOWED_IPS=192.168.1.10,192.168.1.20,10.0.0.5
+_raw_ips = os.getenv("ALLOWED_IPS", "")
+ALLOWED_IPS = [ip.strip() for ip in _raw_ips.split(",") if ip.strip()]

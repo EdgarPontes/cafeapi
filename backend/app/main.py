@@ -1,10 +1,44 @@
-from fastapi import FastAPI, Depends, HTTPException
+import logging
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from starlette.middleware.base import BaseHTTPMiddleware
 from .database import engine
 from .routers import funcionarios, consumo, ranking, relatorios, fotos
-from .config import ALLOWED_ORIGINS
+from .config import ALLOWED_ORIGINS, ALLOWED_IPS
+
+logger = logging.getLogger(__name__)
 
 app = FastAPI(title="Cafe System API")
+
+
+class IPWhitelistMiddleware(BaseHTTPMiddleware):
+    """Bloqueia requisições de IPs não autorizados.
+    Se ALLOWED_IPS estiver vazio, todas as requisições são permitidas.
+    """
+    async def dispatch(self, request: Request, call_next):
+        if not ALLOWED_IPS:
+            return await call_next(request)
+
+        client_ip = request.client.host if request.client else None
+
+        # Suporte a proxy reverso: usa X-Forwarded-For se disponível
+        forwarded_for = request.headers.get("X-Forwarded-For")
+        if forwarded_for:
+            client_ip = forwarded_for.split(",")[0].strip()
+
+        if client_ip not in ALLOWED_IPS:
+            logger.warning(f"Acesso negado para IP: {client_ip}")
+            return JSONResponse(
+                status_code=403,
+                content={"detail": "Acesso negado: IP não autorizado."}
+            )
+
+        return await call_next(request)
+
+
+# Middleware de IP (deve ser adicionado antes do CORS)
+app.add_middleware(IPWhitelistMiddleware)
 
 # Configure CORS
 # Origens são lidas da variável ALLOWED_ORIGINS (separadas por vírgula)
