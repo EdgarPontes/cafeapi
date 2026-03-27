@@ -14,6 +14,7 @@ class ConsumoCreate(BaseModel):
     nome: str = None  # Nome opcional para visitantes
 
 @router.post("/")
+@router.post("")
 def register_consumo(data: ConsumoCreate, db: Session = Depends(get_db), db_rjk: Session = Depends(get_db_rjk), db_cafe: Session = Depends(get_db_cafe)):
     from sqlalchemy import or_
     

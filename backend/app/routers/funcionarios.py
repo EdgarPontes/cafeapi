@@ -28,6 +28,7 @@ class FuncionarioSchema(BaseModel):
         return str(v)
 
 @router.get("/", response_model=List[FuncionarioSchema])
+@router.get("", response_model=List[FuncionarioSchema])
 def get_funcionarios(db: Session = Depends(get_db), db_rjk: Session = Depends(get_db_rjk)):
     from sqlalchemy import or_, func
     # Use func.trim to catch strings that only contain spaces (e.g. '        ' or '          ')

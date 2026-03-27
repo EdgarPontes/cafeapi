@@ -2,7 +2,7 @@ import os
 import base64
 import re
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional
 from ..config import FOTOS_PATH
 
@@ -10,9 +10,13 @@ router = APIRouter()
 
 
 class FotoUploadRequest(BaseModel):
-    codigo: str
-    imagem: str  # base64 string (pode incluir o data URI prefix)
-    formato: Optional[str] = "jpg"  # extensão padrão: jpg
+    codigo: str = Field(..., alias="id_consumo")
+    imagem: str = Field(..., alias="foto_base64")
+    formato: Optional[str] = "jpg"
+
+    class Config:
+        populate_by_name = True  # Pydantic v2
+        allow_population_by_field_name = True  # Pydantic v1
 
 
 class FotoUploadResponse(BaseModel):
@@ -41,6 +45,7 @@ def _decode_base64(imagem: str) -> tuple[bytes, str]:
 
 
 @router.post("/", response_model=FotoUploadResponse)
+@router.post("", response_model=FotoUploadResponse)
 def upload_foto(payload: FotoUploadRequest):
     """
     Recebe uma imagem em base64 e grava na pasta de fotos.
