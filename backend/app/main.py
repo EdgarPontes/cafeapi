@@ -9,7 +9,7 @@ from .config import ALLOWED_ORIGINS, ALLOWED_IPS
 
 logger = logging.getLogger(__name__)
 
-app = FastAPI(title="Cafe System API")
+app = FastAPI(title="Cafe System API", redirect_slashes=False)
 
 
 class IPWhitelistMiddleware(BaseHTTPMiddleware):
