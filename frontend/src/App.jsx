@@ -1,10 +1,47 @@
+import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import Kiosk from './pages/Kiosk';
 import Dashboard from './pages/Dashboard';
 import TVRanking from './pages/TVRanking';
 import RelatorioConsumo from './pages/RelatorioConsumo';
+import AccessDenied from './components/AccessDenied';
 
 function App() {
+  const [isForbidden, setIsForbidden] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const checkAccess = async () => {
+      try {
+        const resp = await fetch(`${import.meta.env.VITE_API_URL || ''}/`);
+        if (resp.status === 403) {
+          setIsForbidden(true);
+        } else {
+          setIsForbidden(false);
+        }
+      } catch (err) {
+        // Se houver erro de rede, assume que não está bloqueado (ou deixa carregar para ver erros locais)
+        setIsForbidden(false);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkAccess();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
+        <div className="w-12 h-12 border-4 border-accent border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  if (isForbidden) {
+    return <AccessDenied />;
+  }
+
   return (
     <BrowserRouter>
       {/* Navigation bar - hidden on /tv */}
