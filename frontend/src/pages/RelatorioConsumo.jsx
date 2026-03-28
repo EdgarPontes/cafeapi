@@ -98,6 +98,8 @@ export default function RelatorioConsumo() {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [isBaixando, setIsBaixando] = useState(false);
   const [reportType, setReportType] = useState('detalhado'); // 'detalhado' or 'resumido'
+  const [selectedPhoto, setSelectedPhoto] = useState(null);
+  const [photoError, setPhotoError] = useState(false);
 
   // Set default dates for the current month
   const now = new Date();
@@ -327,6 +329,7 @@ export default function RelatorioConsumo() {
                     <th className="px-6 py-4">Usuário</th>
                     <th className="px-6 py-4">Data</th>
                     <th className="px-6 py-4 text-center">Hora</th>
+                    <th className="px-6 py-4 text-center">Foto</th>
                     <th className="px-6 py-4 text-right">Valor</th>
                   </tr>
                 </thead>
@@ -346,6 +349,23 @@ export default function RelatorioConsumo() {
                       </td>
                       <td className="px-6 py-4 text-center text-gray-400 text-sm">
                         {record.hora}
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        <button
+                          onClick={() => {
+                            const apiUrl = import.meta.env.VITE_API_URL || '';
+                            const photoUrl = `${apiUrl}/api/fotos/arquivo/consumo_${record.id_consumo}_${record.codigo}.jpg`;
+                            setPhotoError(false);
+                            setSelectedPhoto(photoUrl);
+                          }}
+                          className="p-2 text-gray-400 hover:text-accent transition-colors rounded-lg hover:bg-white/10"
+                          title="Ver Foto do Consumo"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15a2.25 2.25 0 0 0 2.25-2.25V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0ZM18.75 10.5h.008v.008h-.008V10.5Z" />
+                          </svg>
+                        </button>
                       </td>
                       <td className="px-6 py-4 text-right font-medium">
                         R$ {record.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
@@ -427,8 +447,55 @@ export default function RelatorioConsumo() {
         </div>
       )}
 
+      {selectedPhoto && (
+        <div 
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/95 backdrop-blur-md transition-all animate-fadeIn" 
+          onClick={() => setSelectedPhoto(null)}
+        >
+          <div 
+            className="relative max-w-full lg:max-w-4xl max-h-screen rounded-2xl shadow-3xl overflow-hidden border border-white/10"
+            onClick={e => e.stopPropagation()}
+          >
+            <img 
+              src={selectedPhoto} 
+              alt="Foto do Consumo" 
+              className={`max-w-full max-h-[85vh] object-contain block ${photoError ? 'hidden' : 'visible'}`}
+              onError={() => setPhotoError(true)}
+            />
+            {photoError && (
+              <div className="p-16 text-center bg-[#111]">
+                <span className="text-4xl mb-4 block">📸</span>
+                <p className="text-gray-400 font-bold uppercase tracking-widest text-sm">Foto não encontrada para este consumo</p>
+                <button 
+                  className="mt-6 px-6 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-xs font-black uppercase tracking-widest transition-all"
+                  onClick={() => setSelectedPhoto(null)}
+                >
+                  Fechar
+                </button>
+              </div>
+            )}
+            <button 
+              onClick={() => setSelectedPhoto(null)} 
+              className="absolute top-4 right-4 p-2 bg-black/50 hover:bg-black/80 rounded-full text-white transition-all hover:scale-110 active:scale-90"
+              title="Fechar"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
+
       <style dangerouslySetInnerHTML={{
         __html: `
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        .animate-fadeIn {
+          animation: fadeIn 0.3s ease-out forwards;
+        }
         /* Custom styles for react-datepicker to match theme */
         .react-datepicker {
           background-color: #0a0a0a !important;
