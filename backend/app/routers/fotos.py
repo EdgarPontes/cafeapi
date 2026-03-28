@@ -1,7 +1,8 @@
 import os
 import base64
 import re
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Response
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 from typing import Optional
 from ..config import FOTOS_PATH
@@ -10,13 +11,15 @@ router = APIRouter()
 
 
 class FotoUploadRequest(BaseModel):
-    codigo: str = Field(..., alias="id_consumo")
+    id_consumo: int
+    codigo_usuario: str = Field(..., alias="codigo")
     imagem: str = Field(..., alias="foto_base64")
     formato: Optional[str] = "jpg"
 
     class Config:
-        populate_by_name = True  # Pydantic v2
-        allow_population_by_field_name = True  # Pydantic v1
+        populate_by_name = True  # Pydantic v2 support
+        allow_population_by_field_name = True  # Pydantic v1 support
+        protected_namespaces = () # Avoid Pydantic v2 warning if any field starts with model_
 
 
 class FotoUploadResponse(BaseModel):
@@ -48,9 +51,10 @@ def _decode_base64(imagem: str) -> tuple[bytes, str]:
 @router.post("", response_model=FotoUploadResponse)
 def upload_foto(payload: FotoUploadRequest):
     """
-    Recebe uma imagem em base64 e grava na pasta de fotos.
+    Recebe uma imagem em base64 e grava na pasta de fotos associada ao consumo.
 
-    - **codigo**: código do funcionário (usado como nome do arquivo)
+    - **id_consumo**: ID único do registro de consumo (sr_recno)
+    - **codigo_usuario**: código do funcionário
     - **imagem**: imagem em base64 (com ou sem prefixo data URI)
     - **formato**: extensão do arquivo (padrão: jpg)
     """
@@ -62,7 +66,7 @@ def upload_foto(payload: FotoUploadRequest):
     if extensao == "jpeg":
         extensao = "jpg"
 
-    filename = f"{payload.codigo}.{extensao}"
+    filename = f"consumo_{payload.id_consumo}_{payload.codigo_usuario}.{extensao}"
     filepath = os.path.join(FOTOS_PATH, filename)
 
     # Garantir que o diretório existe
@@ -77,8 +81,25 @@ def upload_foto(payload: FotoUploadRequest):
     return FotoUploadResponse(
         filename=filename,
         caminho=filepath,
-        mensagem=f"Foto do funcionário '{payload.codigo}' salva com sucesso.",
+        mensagem=f"Foto do consumo '{payload.id_consumo}' (usuário {payload.codigo_usuario}) salva com sucesso.",
     )
+
+
+@router.get("/arquivo/{filename}")
+def get_foto_arquivo(filename: str):
+    """Retorna o arquivo de imagem diretamente."""
+    filepath = os.path.join(FOTOS_PATH, filename)
+    if not os.path.exists(filepath):
+        raise HTTPException(status_code=404, detail="Arquivo não encontrado")
+    
+    # Determinar o media type básico pela extensão
+    media_type = "image/jpeg"
+    if filename.lower().endswith(".png"):
+        media_type = "image/png"
+    elif filename.lower().endswith(".webp"):
+        media_type = "image/webp"
+
+    return FileResponse(filepath, media_type=media_type)
 
 
 @router.delete("/{codigo}")

@@ -93,7 +93,7 @@ def get_relatorio_consumos(
 
     # Queries com parâmetros nomeados (sem interpolação de variáveis externas)
     sql_records = text(f"""
-        SELECT nome, valor, data, hora, databaixa, horabaixa, idfunc
+        SELECT nome, valor, data, hora, databaixa, horabaixa, idfunc, sr_recno
         FROM CAFE
         {where_str}
         ORDER BY data DESC, nome ASC
@@ -125,7 +125,8 @@ def get_relatorio_consumos(
                 "data": str(row[2]),
                 "hora": str(row[3]),
                 "baixado": row[4] is not None,
-                "codigo": row[6]
+                "codigo": row[6],
+                "id_consumo": row[7]
             } for row in result_records
         ],
         "totals": [{"nome": row[0], "total": float(row[1]), "codigo": row[2]} for row in result_totals],
