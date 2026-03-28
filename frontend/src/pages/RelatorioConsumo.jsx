@@ -31,9 +31,8 @@ function LoginModal({ onSuccess }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black">
       <div
-        className={`bg-[#111] border border-white/10 rounded-3xl p-10 w-full max-w-sm shadow-2xl transition-transform ${
-          shaking ? 'animate-shake' : ''
-        }`}
+        className={`bg-[#111] border border-white/10 rounded-3xl p-10 w-full max-w-sm shadow-2xl transition-transform ${shaking ? 'animate-shake' : ''
+          }`}
       >
         <div className="text-center mb-8">
           <span className="text-5xl">☕</span>
@@ -207,9 +206,6 @@ export default function RelatorioConsumo() {
           <div>
             <h1 className="text-3xl sm:text-4xl font-black text-accent uppercase tracking-tighter">
               Relatório de Consumos
-              <span className="block text-sm font-bold text-gray-400 mt-1 print:hidden">
-                Período: {new Date(startDate + 'T00:00:00').toLocaleDateString('pt-BR')} até {new Date(endDate + 'T00:00:00').toLocaleDateString('pt-BR')}
-              </span>
             </h1>
           </div>
           <button
@@ -391,27 +387,25 @@ export default function RelatorioConsumo() {
             <h3 className="text-2xl font-black text-white uppercase tracking-tighter mb-4">
               Imprimir Relatório
             </h3>
-            
+
             <div className="mb-6">
               <label className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 block">Tipo de Relatório</label>
               <div className="grid grid-cols-2 gap-2">
                 <button
                   onClick={() => setReportType('detalhado')}
-                  className={`py-3 rounded-xl border font-bold transition-all uppercase text-xs tracking-widest ${
-                    reportType === 'detalhado' 
-                      ? 'bg-accent text-black border-accent' 
+                  className={`py-3 rounded-xl border font-bold transition-all uppercase text-xs tracking-widest ${reportType === 'detalhado'
+                      ? 'bg-accent text-black border-accent'
                       : 'bg-white/5 text-gray-400 border-white/10 hover:bg-white/10'
-                  }`}
+                    }`}
                 >
                   Detalhado
                 </button>
                 <button
                   onClick={() => setReportType('resumido')}
-                  className={`py-3 rounded-xl border font-bold transition-all uppercase text-xs tracking-widest ${
-                    reportType === 'resumido' 
-                      ? 'bg-accent text-black border-accent' 
+                  className={`py-3 rounded-xl border font-bold transition-all uppercase text-xs tracking-widest ${reportType === 'resumido'
+                      ? 'bg-accent text-black border-accent'
                       : 'bg-white/5 text-gray-400 border-white/10 hover:bg-white/10'
-                  }`}
+                    }`}
                 >
                   Resumido
                 </button>
@@ -448,17 +442,17 @@ export default function RelatorioConsumo() {
       )}
 
       {selectedPhoto && (
-        <div 
-          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/95 backdrop-blur-md transition-all animate-fadeIn" 
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/95 backdrop-blur-md transition-all animate-fadeIn"
           onClick={() => setSelectedPhoto(null)}
         >
-          <div 
+          <div
             className="relative max-w-full lg:max-w-4xl max-h-screen rounded-2xl shadow-3xl overflow-hidden border border-white/10"
             onClick={e => e.stopPropagation()}
           >
-            <img 
-              src={selectedPhoto} 
-              alt="Foto do Consumo" 
+            <img
+              src={selectedPhoto}
+              alt="Foto do Consumo"
               className={`max-w-full max-h-[85vh] object-contain block ${photoError ? 'hidden' : 'visible'}`}
               onError={() => setPhotoError(true)}
             />
@@ -466,7 +460,7 @@ export default function RelatorioConsumo() {
               <div className="p-16 text-center bg-[#111]">
                 <span className="text-4xl mb-4 block">📸</span>
                 <p className="text-gray-400 font-bold uppercase tracking-widest text-sm">Foto não encontrada para este consumo</p>
-                <button 
+                <button
                   className="mt-6 px-6 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-xs font-black uppercase tracking-widest transition-all"
                   onClick={() => setSelectedPhoto(null)}
                 >
@@ -474,8 +468,8 @@ export default function RelatorioConsumo() {
                 </button>
               </div>
             )}
-            <button 
-              onClick={() => setSelectedPhoto(null)} 
+            <button
+              onClick={() => setSelectedPhoto(null)}
               className="absolute top-4 right-4 p-2 bg-black/50 hover:bg-black/80 rounded-full text-white transition-all hover:scale-110 active:scale-90"
               title="Fechar"
             >
