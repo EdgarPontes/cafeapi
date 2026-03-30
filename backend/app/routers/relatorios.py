@@ -2,6 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 from ..database import get_db, get_db_cafe
+from ..config import REPORT_USER, REPORT_PASSWORD
+
 import datetime
 import zoneinfo
 import re
@@ -46,10 +48,27 @@ class BaixarRequest(BaseModel):
         return v
 
 
+class LoginRequest(BaseModel):
+    username: str
+    password: str
+
+
 router = APIRouter()
 
 
+@router.post("/login")
+def login_relatorio(request: LoginRequest):
+    if request.username == REPORT_USER and request.password == REPORT_PASSWORD:
+        return {"message": "Autenticado com sucesso"}
+    else:
+        raise HTTPException(
+            status_code=401,
+            detail="Usuário ou senha incorretos."
+        )
+
+
 @router.get("/mensal")
+
 def get_relatorio_mensal(db: Session = Depends(get_db), db_cafe: Session = Depends(get_db_cafe)):
     sql = text("""
         SELECT DATE(data) as dia, SUM(valor) as total

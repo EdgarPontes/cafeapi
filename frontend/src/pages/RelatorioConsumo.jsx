@@ -6,8 +6,6 @@ import 'react-datepicker/dist/react-datepicker.css';
 
 registerLocale('pt-BR', ptBR);
 
-const REPORT_USER = import.meta.env.VITE_REPORT_USER || 'admin';
-const REPORT_PASSWORD = import.meta.env.VITE_REPORT_PASSWORD || 'cafe123';
 const SESSION_KEY = 'relatorio_auth';
 
 function LoginModal({ onSuccess }) {
@@ -15,16 +13,34 @@ function LoginModal({ onSuccess }) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [shaking, setShaking] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (username === REPORT_USER && password === REPORT_PASSWORD) {
-      sessionStorage.setItem(SESSION_KEY, '1');
-      onSuccess();
-    } else {
-      setError('Usuário ou senha incorretos.');
-      setShaking(true);
-      setTimeout(() => setShaking(false), 500);
+    setIsLoading(true);
+    setError('');
+
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || ''}/api/relatorios/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+
+      if (response.ok) {
+        sessionStorage.setItem(SESSION_KEY, '1');
+        onSuccess();
+      } else {
+        const data = await response.json();
+        setError(data.detail || 'Usuário ou senha incorretos.');
+        setShaking(true);
+        setTimeout(() => setShaking(false), 500);
+      }
+    } catch (err) {
+      console.error("Login error:", err);
+      setError('Erro ao conectar com o servidor.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -69,9 +85,10 @@ function LoginModal({ onSuccess }) {
           )}
           <button
             type="submit"
-            className="mt-2 w-full py-4 bg-accent text-black font-black rounded-xl hover:bg-accent/80 active:scale-[0.98] transition-all uppercase tracking-widest text-sm"
+            disabled={isLoading}
+            className="mt-2 w-full py-4 bg-accent text-black font-black rounded-xl hover:bg-accent/80 active:scale-[0.98] transition-all uppercase tracking-widest text-sm disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Entrar
+            {isLoading ? 'Entrando...' : 'Entrar'}
           </button>
         </form>
       </div>

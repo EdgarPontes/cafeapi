@@ -20,3 +20,8 @@ ALLOWED_ORIGINS = [
 # Ex: ALLOWED_IPS=192.168.1.10,192.168.1.20,10.0.0.5
 _raw_ips = os.getenv("ALLOWED_IPS", "")
 ALLOWED_IPS = [ip.strip() for ip in _raw_ips.split(",") if ip.strip()]
+
+# Report Configs (Usuário e senha para acesso à área restrita)
+REPORT_USER = os.getenv("REPORT_USER", "admin")
+REPORT_PASSWORD = os.getenv("REPORT_PASSWORD", "cafe123")
+
