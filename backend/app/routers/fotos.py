@@ -89,14 +89,29 @@ def upload_foto(payload: FotoUploadRequest):
 def get_foto_arquivo(filename: str):
     """Retorna o arquivo de imagem diretamente."""
     filepath = os.path.join(FOTOS_PATH, filename)
+    
+    # Se o arquivo não existir, tenta procurar com prefixos SG: ou RJK: (específico para consumo)
+    if not os.path.exists(filepath) and filename.startswith("consumo_"):
+        # Tenta inserir os prefixos conhecidos após o segundo underscore
+        # Ex: consumo_2704_416.jpg -> consumo_2704_SG:416.jpg
+        parts = filename.split('_', 2)
+        if len(parts) == 3:
+            for prefix in ("SG:", "RJK:"):
+                alt_filename = f"{parts[0]}_{parts[1]}_{prefix}{parts[2]}"
+                alt_path = os.path.join(FOTOS_PATH, alt_filename)
+                if os.path.exists(alt_path):
+                    filepath = alt_path
+                    break
+
     if not os.path.exists(filepath):
         raise HTTPException(status_code=404, detail="Arquivo não encontrado")
     
     # Determinar o media type básico pela extensão
     media_type = "image/jpeg"
-    if filename.lower().endswith(".png"):
+    lower_f = filepath.lower()
+    if lower_f.endswith(".png"):
         media_type = "image/png"
-    elif filename.lower().endswith(".webp"):
+    elif lower_f.endswith(".webp"):
         media_type = "image/webp"
 
     return FileResponse(filepath, media_type=media_type)
@@ -121,7 +136,7 @@ def delete_foto(codigo: str):
 
 @router.get("/{codigo}")
 def get_foto_info(codigo: str):
-    """Retorna informações sobre a foto de um funcionário (se existir)."""
+    # Busca padrão baseada no código (exato ou com extensões comuns)
     for ext in ("jpg", "jpeg", "png", "webp"):
         filepath = os.path.join(FOTOS_PATH, f"{codigo}.{ext}")
         if os.path.exists(filepath):
@@ -132,5 +147,23 @@ def get_foto_info(codigo: str):
                 "tamanho_bytes": stat.st_size,
                 "existe": True,
             }
+
+    # Se for um padrão de consumo e não encontrou, tenta com prefixos
+    if codigo.startswith("consumo_"):
+        parts = codigo.split('_', 2)
+        if len(parts) == 3:
+            for prefix in ("SG:", "RJK:"):
+                # Reconstrói com o prefixo (Ex: consumo_2704_SG:416)
+                alt_codigo = f"{parts[0]}_{parts[1]}_{prefix}{parts[2]}"
+                for ext in ("jpg", "jpeg", "png", "webp"):
+                    alt_path = os.path.join(FOTOS_PATH, f"{alt_codigo}.{ext}")
+                    if os.path.exists(alt_path):
+                        stat = os.stat(alt_path)
+                        return {
+                            "codigo": codigo,
+                            "filename": f"{alt_codigo}.{ext}",
+                            "tamanho_bytes": stat.st_size,
+                            "existe": True,
+                        }
 
     return {"codigo": codigo, "existe": False}
