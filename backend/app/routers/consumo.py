@@ -18,7 +18,15 @@ class ConsumoCreate(BaseModel):
 @router.post("/")
 @router.post("")
 def register_consumo(data: ConsumoCreate, db: Session = Depends(get_db), db_rjk: Session = Depends(get_db_rjk), db_cafe: Session = Depends(get_db_cafe)):
-    from sqlalchemy import or_
+    from sqlalchemy import or_, func
+    
+    # Define the 'active' filter query (matches logic in funcionarios.py)
+    active_query = or_(
+        Funcionario.datadem02 == None,
+        func.trim(Funcionario.datadem02) == '',
+        Funcionario.datadem02 == '0',
+        Funcionario.datadem02 == '00000000'
+    )
     
     # Parse prefix (e.g., 'SG:40' -> prefix='SG', raw_codigo='40')
     prefix = None
@@ -39,16 +47,16 @@ def register_consumo(data: ConsumoCreate, db: Session = Depends(get_db), db_rjk:
         pass  # Nome vem do frontend
     elif codigo_float is not None:
         if prefix == "SG":
-            # Busca somente no banco SG
-            func = db.query(Funcionario).filter(or_(Funcionario.codigo == codigo_float, Funcionario.rfid == codigo_float)).first()
+            # Busca somente no banco SG (considera apenas funcionários ativos)
+            func = db.query(Funcionario).filter(or_(Funcionario.codigo == codigo_float, Funcionario.rfid == codigo_float)).filter(active_query).first()
         elif prefix == "RJK" and db_rjk:
-            # Busca somente no banco RJK
-            func = db_rjk.query(Funcionario).filter(or_(Funcionario.codigo == codigo_float, Funcionario.rfid == codigo_float)).first()
+            # Busca somente no banco RJK (considera apenas funcionários ativos)
+            func = db_rjk.query(Funcionario).filter(or_(Funcionario.codigo == codigo_float, Funcionario.rfid == codigo_float)).filter(active_query).first()
         else:
-            # Sem prefixo: tenta SG primeiro, depois RJK
-            func = db.query(Funcionario).filter(or_(Funcionario.codigo == codigo_float, Funcionario.rfid == codigo_float)).first()
+            # Sem prefixo: tenta SG primeiro, depois RJK (considera apenas funcionários ativos)
+            func = db.query(Funcionario).filter(or_(Funcionario.codigo == codigo_float, Funcionario.rfid == codigo_float)).filter(active_query).first()
             if not func and db_rjk:
-                func = db_rjk.query(Funcionario).filter(or_(Funcionario.codigo == codigo_float, Funcionario.rfid == codigo_float)).first()
+                func = db_rjk.query(Funcionario).filter(or_(Funcionario.codigo == codigo_float, Funcionario.rfid == codigo_float)).filter(active_query).first()
     
     if not func and not (raw_codigo == '999999' or codigo_float == 999999):
         raise HTTPException(status_code=404, detail="Funcionário não encontrado")
