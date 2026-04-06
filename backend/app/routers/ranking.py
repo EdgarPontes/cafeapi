@@ -3,6 +3,9 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func, text
 from ..database import get_db, get_db_cafe, Consumo
 from typing import List
+import datetime
+import calendar
+import zoneinfo
 
 router = APIRouter()
 
@@ -36,14 +39,20 @@ def get_ranking_semana(db: Session = Depends(get_db), db_cafe: Session = Depends
 
 @router.get("/mes")
 def get_ranking_mes(db: Session = Depends(get_db), db_cafe: Session = Depends(get_db_cafe)):
+    tz = zoneinfo.ZoneInfo("America/Sao_Paulo")
+    now = datetime.datetime.now(tz)
+    start_date = now.replace(day=1).date()
+    _, last_day = calendar.monthrange(now.year, now.month)
+    end_date = now.replace(day=last_day).date()
+
     sql = text("""
         SELECT nome, SUM(valor) as total
         FROM CAFE
-        WHERE MONTH(data) = MONTH(CURDATE()) AND YEAR(data) = YEAR(CURDATE())
+        WHERE data BETWEEN :start_date AND :end_date
         GROUP BY nome
         ORDER BY total DESC
         LIMIT 10
     """)
     target_db = db_cafe if db_cafe else db
-    result = target_db.execute(sql).fetchall()
+    result = target_db.execute(sql, {"start_date": start_date, "end_date": end_date}).fetchall()
     return [{"NOME": row[0], "TOTAL": float(row[1])} for row in result]
